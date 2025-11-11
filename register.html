@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Jugador</title>
+  <style>
+    body {
+      background: #121212;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #ffd700;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      background: #1e1e1e;
+      padding: 20px 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px #000;
+    }
+    input {
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      width: 250px;
+    }
+    button {
+      padding: 10px;
+      background: #ffd700;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #ffcc00;
+    }
+    #message {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .error { color: #ff6666; }
+    .success { color: #66ff99; }
+  </style>
+</head>
+<body>
+  <h1>Registro</h1>
+  <form id="registerForm">
+    <input type="text" id="username" placeholder="Nombre de usuario" required />
+    <input type="password" id="password" placeholder="Contraseña" required />
+    <button type="submit">Registrarse</button>
+  </form>
+  <p id="message"></p>
+
+  <script>
+    const form = document.getElementById('registerForm');
+    const message = document.getElementById('message');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      message.textContent = '';
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        message.textContent = 'Por favor completa todos los campos.';
+        message.className = 'error';
+        return;
+      }
+
+      try {
+        const res = await fetch('http://localhost:3000/registro', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          message.innerHTML = `✅ Usuario registrado correctamente.<br>Token: <code>${data.token}</code>`;
+          message.className = 'success';
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('username', data.username);
+          window.location.href = "index.html";
+        } else {
+          message.textContent = `❌ ${data.error || 'Error al registrar usuario'}`;
+          message.className = 'error';
+        }
+      } catch (err) {
+        message.textContent = 'Error de conexión con el servidor.';
+        message.className = 'error';
+        console.error(err);
+      }
+    });
+  </script>
+</body>
+</html>
