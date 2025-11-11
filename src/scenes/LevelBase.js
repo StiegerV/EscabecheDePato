@@ -9,16 +9,19 @@ export default class LevelBase extends Phaser.Scene {
     this.levelKey = key;
   }
 
-  init(data = {}) {
-    this.hasLoadedData =
-      data.hasOwnProperty('loadedScore') ||
-      data.hasOwnProperty('loadedHits') ||
-      data.hasOwnProperty('loadedAmmo');
+init(data = {}) {
+  this.hasLoadedData =
+    data.hasOwnProperty('loadedScore') ||
+    data.hasOwnProperty('loadedHits') ||
+    data.hasOwnProperty('loadedAmmo') ||
+    data.hasOwnProperty('loadedShots'); // ← NUEVO
 
-    this.loadedScore = data.loadedScore ?? 0;
-    this.loadedHits = data.loadedHits ?? 0;
-    this.loadedAmmo = data.loadedAmmo ?? 5;
-  }
+  this.loadedScore = data.loadedScore ?? 0;
+  this.loadedHits = data.loadedHits ?? 0;
+  this.loadedAmmo = data.loadedAmmo ?? 5;
+  this.loadedShots = data.loadedShots ?? 0; // ← NUEVO
+  this.registry.set('currentLevel', this.levelKey);
+}
 
   create(levelConfig) {
     const config = levelConfig;
@@ -97,11 +100,12 @@ this.time.addEvent({
       fontFamily: 'Arial, sans-serif'
     });
 
-    // ---------- Registry DESPUÉS de crear textos ----------
-    this.registry.set('score', this.hasLoadedData ? this.loadedScore : this.registry.get('score') ?? 0);
-    this.registry.set('hits', this.hasLoadedData ? this.loadedHits : this.registry.get('hits') ?? 0);
-    this.registry.set('ammo', this.hasLoadedData ? this.loadedAmmo : this.registry.get('ammo') ?? 5);
-    this.registry.set('tiempo', config.duration / 1000);
+  // ---------- Registry DESPUÉS de crear textos ----------
+  this.registry.set('score', this.hasLoadedData ? this.loadedScore : this.registry.get('score') ?? 0);
+  this.registry.set('hits', this.hasLoadedData ? this.loadedHits : this.registry.get('hits') ?? 0);
+  this.registry.set('ammo', this.hasLoadedData ? this.loadedAmmo : this.registry.get('ammo') ?? 5);
+  this.registry.set('shots', this.hasLoadedData ? this.loadedShots : this.registry.get('shots') ?? 0); // ← NUEVO
+  this.registry.set('tiempo', config.duration / 1000);
 
     // Actualizar textos con los valores iniciales del registry
     this.scoreText.setText(`Puntos: ${this.registry.get('score')}`);
@@ -181,26 +185,33 @@ this.time.addEvent({
   }
 
   // ---------- Comprobar objetivo de puntuación ----------
-  checkLevelCompletion(targetScore, nextScene) {
-    if (this.registry.get('score') >= targetScore) {
-      if (this.music) this.music.stop();
-      
-      // Limpiar listener del registry
-      if (this.registry.events) {
-        this.registry.events.off('changedata');
-      }
-      
-      this.scene.start('LevelTransitionScene', {
-        levelNumber: parseInt(this.levelKey.replace('Level', '')),
-        nextScene,
-        stats: {
-          hits: this.registry.get('hits'),
-          score: this.registry.get('score'),
-          tiempo: this.registry.get('tiempo'),
-        },
-      });
+checkLevelCompletion(targetScore, nextScene) {
+  if (this.registry.get('score') >= targetScore) {
+    if (this.music) this.music.stop();
+    
+    // Limpiar listener del registry
+    if (this.registry.events) {
+      this.registry.events.off('changedata');
     }
+    
+    // Obtener datos REALES del registry y calcular precisión
+    const hits = this.registry.get('hits') || 0;
+    const shots = this.registry.get('shots') || 0; // Necesitas trackear disparos
+    const accuracy = shots > 0 ? (hits / shots) * 100 : 0;
+    
+    this.scene.start('LevelTransitionScene', {
+      levelNumber: parseInt(this.levelKey.replace('Level', '')),
+      nextScene,
+      stats: {
+        hits: hits,
+        shots: shots,
+        accuracy: accuracy,
+        timeLeft: this.levelTime,
+        score: this.registry.get('score') // Pasar score también por si acaso
+      },
+    });
   }
+}
 
   update() {
     // Cada nivel puede sobrescribir y llamar checkLevelCompletion()

@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import { fileURLToPath } from "url";
 import sqlite3 from "sqlite3";
-import { open } from "sqlite";  // This requires the 'sqlite' package
+import { open } from "sqlite"; 
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import cors from "cors";
@@ -26,7 +26,7 @@ let db;
     driver: sqlite3.Database
   });
 
-  // Tabla de usuarios
+  // tabla de usuarios
   await db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,7 +36,7 @@ let db;
     );
   `);
 
-  // Slots de guardado del jugador
+  // slots de guardado del jugador
   await db.exec(`
     CREATE TABLE IF NOT EXISTS saves (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -50,7 +50,7 @@ let db;
     );
   `);
 
-  // Tabla global de puntuaciones
+  // tabla global de puntuaciones
   await db.exec(`
     CREATE TABLE IF NOT EXISTS highscores (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -84,7 +84,7 @@ function authMiddleware(req, res, next) {
 
 // =================== ENDPOINTS ===================
 
-// Registro
+// registro
 app.post("/registro", async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password)
@@ -107,7 +107,7 @@ app.post("/registro", async (req, res) => {
   }
 });
 
-// Login
+// login
 app.post("/login", async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password)
@@ -131,7 +131,7 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// Guardar partida (solo nivel y score)
+// guardar partida
 app.post("/save", authMiddleware, async (req, res) => {
   const { slot, level, score } = req.body || {};
   if (slot == null) return res.status(400).json({ error: "slot requerido" });
@@ -154,7 +154,7 @@ app.post("/save", authMiddleware, async (req, res) => {
   }
 });
 
-// Cargar partida
+// cargar partida
 app.get("/load/:slot", authMiddleware, async (req, res) => {
   const { slot } = req.params;
   try {
@@ -170,7 +170,7 @@ app.get("/load/:slot", authMiddleware, async (req, res) => {
   }
 });
 
-// Listar partidas guardadas
+// listar partidas guardadas
 app.get("/saves", authMiddleware, async (req, res) => {
   try {
     const saves = await db.all(
@@ -186,7 +186,7 @@ app.get("/saves", authMiddleware, async (req, res) => {
 
 // =================== HIGHSCORES GLOBALES ===================
 
-// Registrar puntaje global
+// registrar puntaje global
 app.post("/highscore", authMiddleware, async (req, res) => {
   const { score, time } = req.body || {};
   if (!score || !time)
@@ -205,7 +205,7 @@ app.post("/highscore", authMiddleware, async (req, res) => {
   }
 });
 
-// Obtener ranking global (top 10)
+// obtener ranking global (top 10)
 app.get("/highscores", async (req, res) => {
   try {
     const rows = await db.all(

@@ -50,6 +50,19 @@
     }
     .error { color: #ff6666; }
     .success { color: #66ff99; }
+    .login-link {
+      margin-top: 15px;
+      text-align: center;
+    }
+    .login-link a {
+      color: #4ecdc4;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .login-link a:hover {
+      text-decoration: underline;
+      color: #45b7d1;
+    }
   </style>
 </head>
 <body>
@@ -59,6 +72,12 @@
     <input type="password" id="password" placeholder="Contraseña" required />
     <button type="submit">Registrarse</button>
   </form>
+
+  <!-- NUEVO: Enlace para ir al login -->
+  <div class="login-link">
+    <a href="login.html">¿Ya tienes cuenta? Inicia sesión aquí</a>
+  </div>
+
   <p id="message"></p>
 
   <script>

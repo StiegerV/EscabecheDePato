@@ -15,17 +15,17 @@ export default class PauseScene extends Phaser.Scene {
   create() {
     const { width, height } = this.sys.game.canvas;
 
-    // Fondo semitransparente
+    // fondo semitransparente
     this.add.rectangle(width / 2, height / 2, width, height, 0x000000, 0.7);
 
-    // Título
+    // titulo
     this.add.text(width / 2, height / 2 - 180, '⏸ PAUSA', {
       fontSize: '48px',
       fill: '#ffffff',
       fontStyle: 'bold'
     }).setOrigin(0.5);
 
-    // Obtener datos actualizados del registry si están disponibles
+    // obtener datos actualizados del registry si estan disponibles
     const currentScene = this.scene.get(this.previousScene);
     let currentStats = this.stats;
     
@@ -50,15 +50,17 @@ export default class PauseScene extends Phaser.Scene {
       }
     ).setOrigin(0.5);
 
+    // OPCIONES ACTUALIZADAS - Agregado Ranking Global
     const options = [
       { text: 'Reanudar', action: () => this.resumeGame() },
       { text: 'Guardar Progreso', action: () => this.showSaveSlots() },
       { text: 'Cargar Progreso', action: () => this.showLoadSlots() },
-      { text: 'Salir al Menú', action: () => this.exitToMenu() }
+      { text: '🏆 Ranking Global', action: () => this.showGlobalRanking() },
+      { text: 'Salir al Menu', action: () => this.exitToMenu() }
     ];
 
     options.forEach((opt, i) => {
-      const btn = this.add.text(width / 2, height / 2 + 50 + i * 50, opt.text, {
+      const btn = this.add.text(width / 2, height / 2 + 30 + i * 50, opt.text, {
         fontSize: '26px',
         fill: '#ffff00',
         fontFamily: 'Arial, sans-serif'
@@ -80,22 +82,22 @@ export default class PauseScene extends Phaser.Scene {
     }
   }
 
-exitToMenu() {
-  // Limpiar listeners del registry antes de salir
-  if (this.registry.events) {
-    this.registry.events.off('changedata');
-  }
-  
-  // Limpiar todas las escenas de nivel antes de ir al menú
-  const levelScenes = ['Level1', 'Level2', 'Level3', 'Level4', 'Level5'];
-  levelScenes.forEach(sceneKey => {
-    if (this.scene.isActive(sceneKey) || this.scene.isPaused(sceneKey)) {
-      this.scene.stop(sceneKey);
+  exitToMenu() {
+    // limpiar listeners del registry antes de salir
+    if (this.registry.events) {
+      this.registry.events.off('changedata');
     }
-  });
-  
-  this.scene.start('MenuScene');
-}
+    
+    // limpiar todas las escenas de nivel antes de ir al menu
+    const levelScenes = ['Level1', 'Level2', 'Level3', 'Level4', 'Level5'];
+    levelScenes.forEach(sceneKey => {
+      if (this.scene.isActive(sceneKey) || this.scene.isPaused(sceneKey)) {
+        this.scene.stop(sceneKey);
+      }
+    });
+    
+    this.scene.start('MenuScene');
+  }
 
   // ---------- TOAST ----------
   showToast(text, color = "#0f0") {
@@ -108,6 +110,148 @@ exitToMenu() {
       fontFamily: 'Arial, sans-serif'
     }).setOrigin(0.5);
     this.time.delayedCall(1500, () => msg.destroy());
+  }
+
+  // ---------- NUEVO: RANKING GLOBAL ----------
+  async showGlobalRanking() {
+    const { width, height } = this.sys.game.canvas;
+    
+    // Fondo del modal
+    const bg = this.add.rectangle(width / 2, height / 2, 500, 450, 0x000000, 0.95)
+      .setStrokeStyle(3, 0xffd700);
+    
+    const title = this.add.text(width / 2, height / 2 - 200, "🏆 RANKING GLOBAL", {
+      fontSize: "32px",
+      fill: "#ffd700",
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const buttons = [bg, title];
+
+    // Texto de carga
+    const loadingText = this.add.text(width / 2, height / 2, "Cargando ranking...", {
+      fontSize: "20px",
+      fill: "#ffffff",
+      fontFamily: 'Arial, sans-serif'
+    }).setOrigin(0.5);
+    buttons.push(loadingText);
+
+    try {
+      const res = await fetch("http://localhost:3000/highscores");
+      
+      if (res.ok) {
+        const highscores = await res.json();
+        loadingText.destroy(); // Remover texto de carga
+
+        if (highscores.length === 0) {
+          // Si no hay puntuaciones
+          const noScoresText = this.add.text(width / 2, height / 2, 
+            "¡Aún no hay puntuaciones!\n\nCompleta el Level 3 para aparecer aquí.", {
+            fontSize: "22px",
+            fill: "#aaaaaa",
+            fontFamily: 'Arial, sans-serif',
+            align: 'center',
+            lineSpacing: 10
+          }).setOrigin(0.5);
+          buttons.push(noScoresText);
+        } else {
+          // Mostrar top 10
+          const header = this.add.text(width / 2, height / 2 - 150, 
+            "POS  JUGADOR          PUNTOS    TIEMPO", {
+            fontSize: "18px",
+            fill: "#ffd700",
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: 'bold'
+          }).setOrigin(0.5);
+          buttons.push(header);
+
+          // Mostrar cada puntuación
+          highscores.forEach((score, index) => {
+            const yPos = height / 2 - 110 + index * 30;
+            
+            const position = this.add.text(width / 2 - 220, yPos, 
+              `${index + 1}.`, {
+              fontSize: "18px",
+              fill: "#ffffff",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0, 0.5);
+
+            const username = this.add.text(width / 2 - 180, yPos, 
+              score.username.length > 12 ? score.username.substring(0, 12) + "..." : score.username, {
+              fontSize: "18px",
+              fill: "#4ecdc4",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0, 0.5);
+
+            const points = this.add.text(width / 2 + 50, yPos, 
+              score.score.toString(), {
+              fontSize: "18px",
+              fill: "#ffff00",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0.5, 0.5);
+
+            const time = this.add.text(width / 2 + 150, yPos, 
+              `${score.time}s`, {
+              fontSize: "18px",
+              fill: "#ff6b6b",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0.5, 0.5);
+
+            // Destacar si es el jugador actual
+            if (score.username === this.username) {
+              [position, username, points, time].forEach(text => {
+                text.setStyle({ fill: "#ffd700", fontStyle: 'bold' });
+              });
+            }
+
+            buttons.push(position, username, points, time);
+          });
+
+          // Información sobre cómo subir al ranking
+          const infoText = this.add.text(width / 2, height / 2 + 150, 
+            "💡 Las puntuaciones se suben automáticamente al completar el Level 3", {
+            fontSize: "14px",
+            fill: "#aaaaaa",
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: 'italic',
+            align: 'center',
+            lineSpacing: 5
+          }).setOrigin(0.5);
+          buttons.push(infoText);
+        }
+
+      } else {
+        loadingText.setText("Error al cargar el ranking");
+        loadingText.setStyle({ fill: "#ff6666" });
+      }
+    } catch (err) {
+      console.error('Error fetching highscores:', err);
+      loadingText.setText("Error de conexión");
+      loadingText.setStyle({ fill: "#ff6666" });
+    }
+
+    // Botón cerrar
+    const closeBtn = this.add.text(width / 2, height / 2 + 190, 'Cerrar', {
+      fontSize: '20px',
+      fill: '#ff5555',
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#660000',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        buttons.forEach(el => el.destroy());
+        closeBtn.destroy();
+      })
+      .on('pointerover', () => closeBtn.setStyle({ 
+        fill: '#ffffff', 
+        backgroundColor: '#880000' 
+      }))
+      .on('pointerout', () => closeBtn.setStyle({ 
+        fill: '#ff5555', 
+        backgroundColor: '#660000' 
+      }));
   }
 
   // ---------- GUARDAR PARTIDA ----------
@@ -125,7 +269,7 @@ exitToMenu() {
     
     const buttons = [bg, title];
 
-    // Obtener datos actuales del nivel en pausa
+    // obtener datos actuales del nivel en pausa
     const currentScene = this.scene.get(this.previousScene);
     let currentLevel = 1;
     let currentScore = 0;
@@ -151,7 +295,7 @@ exitToMenu() {
       return;
     }
 
-    // Botón de cerrar
+    // boton de cerrar
     const closeBtn = this.add.text(width / 2, height / 2 + 180, 'Cerrar', {
       fontSize: '22px',
       fill: '#ff5555',
@@ -259,7 +403,7 @@ exitToMenu() {
       return;
     }
 
-    // Botón de cerrar
+    // boton de cerrar
     const closeBtn = this.add.text(width / 2, height / 2 + 180, 'Cerrar', {
       fontSize: '22px',
       fill: '#ff5555',
@@ -313,14 +457,14 @@ exitToMenu() {
                 const data = await res.json();
                 
                 if (data.level != null) {
-                  // Preparar datos para cargar en el nivel
+                  // preparar datos para cargar en el nivel
                   const loadData = {
                     loadedScore: data.score || 0,
                     loadedHits: data.hits || 0,
                     loadedAmmo: data.ammo || 5
                   };
 
-                  // Cerrar todas las escenas de nivel existentes
+                  // cerrar todas las escenas de nivel existentes
                   const levelScenes = ['Level1', 'Level2', 'Level3', 'Level4', 'Level5'];
                   levelScenes.forEach(sceneKey => {
                     if (this.scene.isActive(sceneKey) || this.scene.isPaused(sceneKey)) {
@@ -328,7 +472,7 @@ exitToMenu() {
                     }
                   });
 
-                  // Cerrar pausa y cargar el nivel guardado
+                  // cerrar pausa y cargar el nivel guardado
                   this.scene.stop();
                   this.scene.start(`Level${data.level}`, loadData);
                   

@@ -6,39 +6,40 @@ export default class MenuScene extends Phaser.Scene {
   create() {
     const { width, height } = this.sys.game.canvas;
     
-    // Fondo
+    // fondo
     this.background = this.add.image(0, 0, 'menuBackground')
       .setOrigin(0)
       .setDisplaySize(window.innerWidth, window.innerHeight);
 
-    // 🔹 Obtener token y usuario
+    // obtener token y usuario
     this.token = localStorage.getItem('token');
     this.username = localStorage.getItem('username') || 'Desconocido';
 
-    // Título del juego
-    this.add.text(width / 2, 150, 'DUCK SEASON', {
+    // titulo del juego
+    this.add.text(width / 2, 120, 'DUCK SEASON', {
       fontSize: '64px',
       fill: '#000000',
       fontStyle: 'bold',
       fontFamily: 'Arial, sans-serif'
     }).setOrigin(0.5);
 
-    // Información del jugador
-    this.add.text(width / 2, 230, `Jugador: ${this.username}`, {
+    // informacion del jugador
+    this.add.text(width / 2, 190, `Jugador: ${this.username}`, {
       fontSize: '24px',
       fill: '#2600ff',
       fontFamily: 'Arial, sans-serif'
     }).setOrigin(0.5);
 
-    // Opciones de menú
+    // OPCIONES DE MENÚ ACTUALIZADAS - Agregado Ranking Global
     const options = [
       { text: '🕹️ Nuevo Juego', action: () => this.startNewGame() },
       { text: '💾 Continuar', action: () => this.showLoadSlots() },
+      { text: '🏆 Ranking Global', action: () => this.showGlobalRanking() }, // NUEVA OPCIÓN
       { text: '📜 Créditos', action: () => this.showCredits() }
     ];
 
     options.forEach((opt, i) => {
-      const btn = this.add.text(width / 2, 350 + i * 60, opt.text, {
+      const btn = this.add.text(width / 2, 280 + i * 60, opt.text, {
         fontSize: '32px',
         fill: '#ffff00',
         fontFamily: 'Arial, sans-serif'
@@ -49,21 +50,161 @@ export default class MenuScene extends Phaser.Scene {
         .on('pointerout', () => btn.setStyle({ fill: '#ffff00' }));
     });
 
-    // 🔹 IMPORTANTE: Remover cualquier listener previo del registry
+    // remover cualquier listener previo del registry
     if (this.registry.events) {
       this.registry.events.off('changedata');
     }
 
-    // Resetear registry al entrar al menú (para nuevo juego limpio)
+    // resetear registry al entrar al menu (para nuevo juego limpio)
     this.registry.set('score', 0);
     this.registry.set('hits', 0);
     this.registry.set('ammo', 5);
     this.registry.set('tiempo', 0);
   }
 
-  // 🔸 Empezar nuevo juego
+  // NUEVO: MOSTRAR RANKING GLOBAL
+  async showGlobalRanking() {
+    const { width, height } = this.sys.game.canvas;
+    
+    // Fondo del modal
+    const bg = this.add.rectangle(width / 2, height / 2, 500, 500, 0x000000, 0.95)
+      .setStrokeStyle(3, 0xffd700);
+    
+    const title = this.add.text(width / 2, height / 2 - 220, "🏆 RANKING GLOBAL", {
+      fontSize: "32px",
+      fill: "#ffd700",
+      fontFamily: 'Arial, sans-serif',
+      fontStyle: 'bold'
+    }).setOrigin(0.5);
+
+    const buttons = [bg, title];
+
+    // Texto de carga
+    const loadingText = this.add.text(width / 2, height / 2, "Cargando ranking...", {
+      fontSize: "20px",
+      fill: "#ffffff",
+      fontFamily: 'Arial, sans-serif'
+    }).setOrigin(0.5);
+    buttons.push(loadingText);
+
+    try {
+      const res = await fetch("http://localhost:3000/highscores");
+      
+      if (res.ok) {
+        const highscores = await res.json();
+        loadingText.destroy(); // Remover texto de carga
+
+        if (highscores.length === 0) {
+          // Si no hay puntuaciones
+          const noScoresText = this.add.text(width / 2, height / 2, 
+            "¡Aún no hay puntuaciones!\n\nCompleta el Level 3 para aparecer aquí.", {
+            fontSize: "22px",
+            fill: "#aaaaaa",
+            fontFamily: 'Arial, sans-serif',
+            align: 'center',
+            lineSpacing: 10
+          }).setOrigin(0.5);
+          buttons.push(noScoresText);
+        } else {
+          // Mostrar top 10
+          const header = this.add.text(width / 2, height / 2 - 170, 
+            "POS  JUGADOR          PUNTOS    TIEMPO", {
+            fontSize: "18px",
+            fill: "#ffd700",
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: 'bold'
+          }).setOrigin(0.5);
+          buttons.push(header);
+
+          // Mostrar cada puntuación
+          highscores.forEach((score, index) => {
+            const yPos = height / 2 - 130 + index * 30;
+            
+            const position = this.add.text(width / 2 - 220, yPos, 
+              `${index + 1}.`, {
+              fontSize: "18px",
+              fill: "#ffffff",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0, 0.5);
+
+            const username = this.add.text(width / 2 - 180, yPos, 
+              score.username.length > 12 ? score.username.substring(0, 12) + "..." : score.username, {
+              fontSize: "18px",
+              fill: "#4ecdc4",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0, 0.5);
+
+            const points = this.add.text(width / 2 + 50, yPos, 
+              score.score.toString(), {
+              fontSize: "18px",
+              fill: "#ffff00",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0.5, 0.5);
+
+            const time = this.add.text(width / 2 + 150, yPos, 
+              `${score.time}s`, {
+              fontSize: "18px",
+              fill: "#ff6b6b",
+              fontFamily: 'Arial, sans-serif'
+            }).setOrigin(0.5, 0.5);
+
+            // Destacar si es el jugador actual
+            if (score.username === this.username) {
+              [position, username, points, time].forEach(text => {
+                text.setStyle({ fill: "#ffd700", fontStyle: 'bold' });
+              });
+            }
+
+            buttons.push(position, username, points, time);
+          });
+
+          // Información adicional
+          const infoText = this.add.text(width / 2, height / 2 + 170, 
+            "💡 Completa el Level 3 para subir tu puntuación", {
+            fontSize: "16px",
+            fill: "#aaaaaa",
+            fontFamily: 'Arial, sans-serif',
+            fontStyle: 'italic'
+          }).setOrigin(0.5);
+          buttons.push(infoText);
+        }
+
+      } else {
+        loadingText.setText("Error al cargar el ranking");
+        loadingText.setStyle({ fill: "#ff6666" });
+      }
+    } catch (err) {
+      console.error('Error fetching highscores:', err);
+      loadingText.setText("Error de conexión");
+      loadingText.setStyle({ fill: "#ff6666" });
+    }
+
+    // Botón cerrar
+    const closeBtn = this.add.text(width / 2, height / 2 + 220, 'Cerrar', {
+      fontSize: '20px',
+      fill: '#ff5555',
+      fontFamily: 'Arial, sans-serif',
+      backgroundColor: '#660000',
+      padding: { x: 15, y: 8 }
+    }).setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        buttons.forEach(el => el.destroy());
+        closeBtn.destroy();
+      })
+      .on('pointerover', () => closeBtn.setStyle({ 
+        fill: '#ffffff', 
+        backgroundColor: '#880000' 
+      }))
+      .on('pointerout', () => closeBtn.setStyle({ 
+        fill: '#ff5555', 
+        backgroundColor: '#660000' 
+      }));
+  }
+
+  // empezar nuevo juego
   startNewGame() {
-    // Limpiar cualquier escena de nivel existente
+    // limpiar cualquier escena de nivel existente
     const levelScenes = ['Level1', 'Level2', 'Level3', 'Level4', 'Level5'];
     levelScenes.forEach(sceneKey => {
       if (this.scene.isActive(sceneKey)) {
@@ -71,7 +212,7 @@ export default class MenuScene extends Phaser.Scene {
       }
     });
 
-    // Resetear valores del registry para nuevo juego
+    // resetear valores del registry para nuevo juego
     this.registry.set('score', 0);
     this.registry.set('hits', 0);
     this.registry.set('ammo', 5);
@@ -80,7 +221,7 @@ export default class MenuScene extends Phaser.Scene {
     this.scene.start('Level1');
   }
 
-  // 🔸 Mostrar menú de carga (compatible con LevelBase)
+  // mostrar menu de carga 
   async showLoadSlots() {
     if (!this.token) {
       this.showToast("⚠️ No estás logueado", "#f00");
@@ -162,7 +303,7 @@ export default class MenuScene extends Phaser.Scene {
 
                   console.log(`Cargando partida -> Nivel: ${data.level}, Score: ${loadData.loadedScore}, Hits: ${loadData.loadedHits}, Ammo: ${loadData.loadedAmmo}`);
 
-                  // Limpiar todas las escenas de nivel existentes
+                  // limpiar todas las escenas de nivel existentes
                   const levelScenes = ['Level1', 'Level2', 'Level3', 'Level4', 'Level5'];
                   levelScenes.forEach(sceneKey => {
                     if (this.scene.isActive(sceneKey)) {
@@ -179,11 +320,11 @@ export default class MenuScene extends Phaser.Scene {
                   buttons.forEach(el => el.destroy());
                   closeBtn.destroy();
 
-                  // Iniciar el nivel correspondiente
+                  // iniciar el nivel correspondiente
                   this.scene.start(`Level${data.level}`, loadData);
                   
                 } else {
-                  this.showToast("❌ Datos de partida inválidos", "#f00");
+                  this.showToast("❌ Datos de partida invalidos", "#f00");
                 }
               } else {
                 this.showToast("❌ Error al cargar partida", "#f00");
@@ -202,7 +343,7 @@ export default class MenuScene extends Phaser.Scene {
       buttons.push(slotText, infoText);
     }
 
-    // Botón cerrar
+    // boton cerrar
     const closeBtn = this.add.text(width / 2, height / 2 + 180, "❌ Cerrar", {
       fontSize: "20px",
       fill: "#ff4444",
@@ -217,7 +358,7 @@ export default class MenuScene extends Phaser.Scene {
       .on('pointerout', () => closeBtn.setStyle({ fill: "#ff4444" }));
   }
 
-  // 🔸 Mostrar créditos
+  // mostrar creditos
   showCredits() {
     const { width, height } = this.sys.game.canvas;
     const bg = this.add.rectangle(width / 2, height / 2, 500, 200, 0x000000, 0.8)
@@ -232,7 +373,7 @@ export default class MenuScene extends Phaser.Scene {
       lineSpacing: 10
     }).setOrigin(0.5);
 
-    // Botón cerrar créditos
+    // boton cerrar creditos
     const closeBtn = this.add.text(width / 2, height / 2 + 80, "Cerrar", {
       fontSize: "18px",
       fill: "#ff5555",
@@ -248,7 +389,7 @@ export default class MenuScene extends Phaser.Scene {
       .on('pointerout', () => closeBtn.setStyle({ fill: "#ff5555" }));
   }
 
-  // 🔸 Mostrar mensajes toast
+  // mostrar mensajes a lo toast
   showToast(text, color = "#0f0") {
     const { width, height } = this.sys.game.canvas;
     const msg = this.add.text(width / 2, height - 50, text, {
@@ -266,14 +407,14 @@ export default class MenuScene extends Phaser.Scene {
     });
   }
 
-  // Limpiar recursos cuando se cierra la escena
+  // limpiar recursos cuando se cierra la escena
   shutdown() {
-    // Limpiar cualquier evento pendiente
+    // limpiar cualquier evento pendiente
     if (this.input.keyboard) {
       this.input.keyboard.off('keydown-ESC');
     }
     
-    // Limpiar listeners del registry
+    // limpiar listeners del registry
     if (this.registry.events) {
       this.registry.events.off('changedata');
     }

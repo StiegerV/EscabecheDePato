@@ -7,7 +7,7 @@ export default class Duck extends Phaser.Physics.Arcade.Sprite {
     this.play('fly');
 
     const velX = Phaser.Math.Between(-baseSpeed, baseSpeed);
-    const velY = Phaser.Math.Between(-baseSpeed , -baseSpeed);
+    const velY = Phaser.Math.Between(-baseSpeed, -baseSpeed);
 
     this.setVelocity(velX, velY);
     this.setCollideWorldBounds(false);
@@ -28,6 +28,9 @@ export default class Duck extends Phaser.Physics.Arcade.Sprite {
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
 
+    // esta activo?
+    if (!this.active) return;
+
     // rotar la sprite por velocidad en x
     if (this.body.velocity.x < 0 && !this.flipX) {
       this.setFlipX(true);
@@ -45,15 +48,15 @@ export default class Duck extends Phaser.Physics.Arcade.Sprite {
     }
   }
 
-  //cuando el pato recibe un disparo
+  // cuando el pato recibe un disparo
   hit() {
-    if (this.isDead) return;
+    if (this.isDead || !this.active) return;
     this.isDead = true;
 
     // animacion de golpe/caida
     this.setVelocity(Phaser.Math.Between(-50, 50), 300);
     this.setTint(0xff0000);
-    this.play('fly', true); // cambiar a hit
+    this.play('fly', true);
 
     // rotar pato al caer
     this.rotation = Phaser.Math.DegToRad(Phaser.Math.Between(-30, 30));
@@ -64,7 +67,11 @@ export default class Duck extends Phaser.Physics.Arcade.Sprite {
       y: this.y + 100,
       alpha: 0,
       duration: 800,
-      onComplete: () => this.destroy()
+      onComplete: () => {
+        if (this.active) {
+          this.destroy();
+        }
+      }
     });
   }
 }

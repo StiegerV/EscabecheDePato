@@ -65,7 +65,7 @@ export default class GameScene extends Phaser.Scene {
     const levelCfg = LevelManager.config();
     if (ScoreManager.get() >= levelCfg.targetScore) {
       LevelManager.next();
-      this.scene.restart(); // Reinicia con la nueva dificultad
+      this.scene.restart(); // reinicia con la nueva dificultad
     }
 
     this.levelText.setText('Nivel: ' + LevelManager.get());

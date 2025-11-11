@@ -37,7 +37,7 @@ export default class Level1 extends Phaser.Scene {
   create() {
     const config = LevelConfig[0];
 
-    // 🔹 Score acumulativo
+    // score acumulativo
     const totalScore = this.hasLoadedData
       ? (this.loadedScore ?? this.registry.get('score') ?? 0)
       : (this.registry.get('score') ?? 0);
@@ -46,21 +46,21 @@ export default class Level1 extends Phaser.Scene {
     this.registry.set('ammo', this.loadedAmmo ?? this.registry.get('ammo') ?? 5);
     this.registry.set('tiempo', config.duration / 1000);
 
-    // --- Música ---
+    // --- musica ---
     this.music = this.sound.add(config.music, { volume: 0.1, loop: true });
     this.music.play();
 
-    // --- Fondo ---
+    // --- fondo ---
     this.background = this.add
       .image(0, 0, config.background)
       .setOrigin(0)
       .setDisplaySize(window.innerWidth, window.innerHeight);
 
-    // --- Mira ---
+    // --- mira ---
     this.crosshair = this.add.image(400, 300, 'crosshair').setScale(0.3).setDepth(10);
     this.input.on('pointermove', (p) => this.crosshair.setPosition(p.x, p.y));
 
-    // --- Patos ---
+    // --- patos ---
     this.ducks = this.add.group();
     this.time.addEvent({
       delay: config.spawnDelay,
@@ -76,10 +76,10 @@ export default class Level1 extends Phaser.Scene {
       }
     });
 
-    // --- Jugador ---
+    // --- jugador ---
     this.player = new Player(this);
 
-    // --- Animación ---
+    // --- animacion ---
     this.anims.create({
       key: 'fly',
       frames: this.anims.generateFrameNumbers('duck', { start: 0, end: 3 }),
@@ -90,7 +90,7 @@ export default class Level1 extends Phaser.Scene {
     // --- HUD ---
     if (!this.scene.isActive('HudScene')) this.scene.launch('HudScene');
 
-    // --- Temporizador ---
+    // --- temporizador ---
     this.levelTime = config.duration / 1000;
     this.timerEvent = this.time.addEvent({
       delay: 1000,
@@ -102,7 +102,7 @@ export default class Level1 extends Phaser.Scene {
       }
     });
 
-    // --- Pausa con ESC ---
+    // --- pausa con ESC ---
     this.input.keyboard.on('keydown-ESC', () => {
       this.scene.pause();
       this.scene.launch('PauseScene', {

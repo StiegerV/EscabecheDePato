@@ -7,9 +7,11 @@ export default class Player {
     this.isReloading = false;
     this.manualReloadReady = true;
 
+    // inicializar registry
     this.scene.registry.set('ammo', this.ammo);
     this.scene.registry.set('hits', this.hits);
-    if (!this.scene.registry.has('score')) this.scene.registry.set('score', 0); // inicializa si no existe
+    this.scene.registry.set('shots', this.shots); 
+    if (!this.scene.registry.has('score')) this.scene.registry.set('score', 0);
 
     this.scene.input.on('pointerdown', (p) => this.shoot(p));
     this.scene.input.keyboard.on('keydown-R', () => this.handleBolt());
@@ -21,7 +23,11 @@ export default class Player {
     if (this.ammo > 0) {
       this.shots++;
       this.ammo--;
+      
+      // actualizar registry
       this.scene.registry.set('ammo', this.ammo);
+      this.scene.registry.set('shots', this.shots); 
+      
       this.scene.sound.play('shot', { volume: 0.09 });
       this.scene.cameras.main.shake(50, 0.002);
       this.manualReloadReady = false;
@@ -34,12 +40,12 @@ export default class Player {
           this.scene.sound.play('hit', { volume: 0.4 });
           this.hits++;
 
-          // 🔹 Actualizar score directamente en el registry
+          // actualizar score y hits en el registry
           const currentScore = this.scene.registry.get('score') || 0;
           const newScore = currentScore + 100;
           this.scene.registry.set('score', newScore);
-
           this.scene.registry.set('hits', this.hits);
+          
           console.log(`[Player] Hit! Score actualizado: ${newScore}`);
           hitSomething = true;
         }

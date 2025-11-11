@@ -4,22 +4,27 @@ class Duck3 extends Duck {
   constructor(scene, x, y, baseSpeed) {
     super(scene, x, y, baseSpeed);
     
-    // Propiedades para movimiento aleatorio
+    // propiedades para movimiento aleatorio
     this.directionChangeTimer = 0;
     this.directionChangeInterval = Phaser.Math.Between(800, 2000);
     this.currentSpeed = baseSpeed;
     
-    // Apariencia gris oscuro
+    // apariencia gris oscuro
     this.setTint(0x333333);
     
-    // Iniciar con movimiento aleatorio después de que el cuerpo esté listo
+    // iniciar con movimiento aleatorio después de que el cuerpo esté listo
     this.scene.time.delayedCall(100, () => {
-      this.setRandomMovement();
+      if (this.active) {
+        this.setRandomMovement();
+      }
     });
   }
 
   setRandomMovement() {
-    // Movimiento completamente aleatorio
+    // verificar que el pato este activo antes de modificar
+    if (!this.active || !this.body) return;
+    
+    // movimiento completamente aleatorio
     const angle = Phaser.Math.Between(0, 360);
     const speed = Phaser.Math.Between(this.currentSpeed * 0.6, this.currentSpeed * 1.4);
     
@@ -32,7 +37,10 @@ class Duck3 extends Duck {
   }
 
   zigZagMovement() {
-    // Movimiento en zig-zag seguro
+    // verificar que el pato este activo antes de modificar
+    if (!this.active || !this.body) return;
+    
+    // movimiento en zig-zag seguro para evitar el crash
     let currentVelX = 0;
     let currentVelY = 0;
     
@@ -41,7 +49,7 @@ class Duck3 extends Duck {
       currentVelY = this.body.velocity.y;
     }
     
-    // Añadir variación aleatoria
+    // añadir variacion aleatoria
     const variationX = Phaser.Math.Between(-40, 40);
     const variationY = Phaser.Math.Between(-40, 40);
     
@@ -55,16 +63,19 @@ class Duck3 extends Duck {
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
     
+    // verificar que el pato este activo antes de hacer cualquier cosa
+    if (!this.active) return;
+    
     this.directionChangeTimer += delta;
     
-    // Cambiar dirección periódicamente
+    // cambiar direccion periodicamente
     if (this.directionChangeTimer >= this.directionChangeInterval) {
       this.setRandomMovement();
       this.directionChangeTimer = 0;
       this.directionChangeInterval = Phaser.Math.Between(500, 1500);
     }
     
-    // Movimiento en zig-zag ocasional (30% de probabilidad)
+    // movimiento en zig-zag ocasional 30% de probabilidad
     if (Phaser.Math.Between(1, 100) <= 30) {
       this.zigZagMovement();
     }
@@ -73,7 +84,7 @@ class Duck3 extends Duck {
   hit() {
     if (this.isDead) return;
     
-    // Comportamiento normal al ser golpeado
+    // comportamiento normal al ser golpeado
     super.hit();
   }
 }

@@ -6,19 +6,19 @@ export default class HUDScene extends Phaser.Scene {
   create() {
     this.cameras.main.setBackgroundColor('rgba(0,0,0,0)');
 
-    // 🔹 Crear textos primero
+    //  crear textos primero
     this.scoreText = this.add.text(20, 20, '', { fontSize: '24px', fill: '#000' });
     this.hitsText = this.add.text(20, 50, '', { fontSize: '24px', fill: '#000' });
     this.ammoText = this.add.text(20, 80, '', { fontSize: '24px', fill: '#000' });
     this.timerText = this.add.text(20, 110, '', { fontSize: '24px', fill: '#000' });
 
-    // Inicializar textos con valores actuales del registry
+    // inicializar textos con valores actuales del registry
     this.updateData(null, 'score', this.registry.get('score') ?? 0);
     this.updateData(null, 'hits', this.registry.get('hits') ?? 0);
     this.updateData(null, 'ammo', this.registry.get('ammo') ?? 5);
     this.updateData(null, 'tiempo', this.registry.get('tiempo') ?? 0);
 
-    // 🔹 Listener después de crear los textos
+    // listener despues de crear los textos
     this.registry.events.on('changedata', (parent, key, value) => {
       this.updateData(parent, key, value);
     }, this);

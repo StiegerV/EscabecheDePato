@@ -1,5 +1,6 @@
 import LevelBase from './LevelBase.js';
 import LevelConfig from '../utils/LevelConfig.js';
+
 export default class Level3 extends LevelBase {
   constructor() {
     super('Level3');
@@ -10,7 +11,75 @@ export default class Level3 extends LevelBase {
   }
 
   update() {
-    this.checkLevelCompletion(LevelConfig[2].targetScore, 'GameOverScene');
+    this.checkLevelCompletion(LevelConfig[2].targetScore, 'VictoryScene');
+  }
+
+  // sobrescribir el metodo checkLevelCompletion para agregar el highscore
+  checkLevelCompletion(targetScore, nextScene) {
+    if (this.registry.get('score') >= targetScore) {
+      if (this.music) this.music.stop();
+      
+      // limpiar listener del registry
+      if (this.registry.events) {
+        this.registry.events.off('changedata');
+      }
+      
+      // obtener datos REALES del registry
+      const finalScore = this.registry.get('score') || 0;
+      const hits = this.registry.get('hits') || 0;
+      const shots = this.registry.get('shots') || 0;
+      const tiempoRestante = this.registry.get('tiempo') || 0;
+      const accuracy = shots > 0 ? (hits / shots) * 100 : 0;
+
+      // insertar en el ranking global automáticamente
+      this.submitToGlobalRanking(finalScore, tiempoRestante);
+
+      this.scene.start(nextScene, {
+        levelNumber: parseInt(this.levelKey.replace('Level', '')),
+        nextScene: nextScene,
+        stats: {
+          hits: hits,
+          shots: shots,
+          accuracy: accuracy,
+          timeLeft: tiempoRestante,
+          score: finalScore
+        },
+      });
+    }
+  }
+
+  // metodo para enviar la puntuación al ranking global
+  async submitToGlobalRanking(score, time) {
+    const token = localStorage.getItem('token');
+    const username = localStorage.getItem('username');
+
+    // solo insertar si el usuario está logueado y tiene un puntaje valido
+    if (!token || !username || score <= 0) {
+      console.log('No se puede subir al ranking: usuario no logueado o puntaje inválido');
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:3000/highscore", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ 
+          score: score,
+          time: time 
+        })
+      });
+
+      if (res.ok) {
+        console.log(`✅ Puntuación ${score} subida al ranking global por ${username}`);
+      } else {
+        console.error('❌ Error al subir puntuación al ranking:', await res.text());
+      }
+    } catch (err) {
+      console.error('❌ Error de conexión al subir al ranking:', err);
+    }
   }
 }
 

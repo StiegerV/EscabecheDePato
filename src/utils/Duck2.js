@@ -3,17 +3,17 @@ export default class Duck2 extends Duck {
   constructor(scene, x, y, baseSpeed) {
     super(scene, x, y, baseSpeed);
     
-    // Propiedades del escudo
+    // propiedades del escudo
     this.hitsRequired = 2;
     this.hitsTaken = 0;
     this.hasShield = true;
     
-    // Crear overlay de escudo (círculo alrededor del pato)
+    // crear overlay de escudo 
     this.shieldOverlay = scene.add.circle(this.x, this.y, this.width * 0.7, 0xffffff, 0.3)
       .setStrokeStyle(3, 0xffffff);
     this.shieldOverlay.setDepth(this.depth - 1);
     
-    // Efecto de tint arcoíris
+    // efecto de  arcoiris
     this.rainbowTween = scene.tweens.addCounter({
       from: 0,
       to: 1,
@@ -31,7 +31,7 @@ export default class Duck2 extends Duck {
     this.setData('isShielded', true);
   }
 
-  // Generar color del arcoíris basado en un valor entre 0 y 1
+  // generar color del arcoiris basado en un valor entre 0 y 1
   getRainbowColor(value) {
     const r = Math.floor(127 + 127 * Math.sin(value * Math.PI * 2));
     const g = Math.floor(127 + 127 * Math.sin(value * Math.PI * 2 + Math.PI * 2/3));
@@ -39,13 +39,13 @@ export default class Duck2 extends Duck {
     return (r << 16) + (g << 8) + b;
   }
 
-  // Sobrescribir el método hit para manejar el escudo
+  // sobrescribir el metodo hit para manejar el escudo
   hit() {
     if (this.isDead) return;
     
     this.hitsTaken++;
     
-    // Efecto visual de golpe al escudo
+    // efecto visual de golpe al escudo
     this.scene.tweens.add({
       targets: [this, this.shieldOverlay],
       scaleX: 1.2,
@@ -56,18 +56,18 @@ export default class Duck2 extends Duck {
     });
     
     if (this.hitsTaken < this.hitsRequired) {
-      // Primer golpe - escudo aún activo
+      // primer golpe tankea el escudo
       this.showShieldHitEffect();
     } else {
-      // Segundo golpe - escudo destruido, pato muere
+      // segundo golpe - escudo destruido, pato muere
       this.destroyShield();
-      super.hit(); // Llamar al método original de muerte
+      super.hit(); // llamar al metodo original de muerte
     }
   }
 
-  // Efecto visual cuando el escudo recibe un golpe
+  // efecto visual cuando el escudo recibe un golpe
   showShieldHitEffect() {
-    // Flash blanco
+    // flash blanco
     this.scene.tweens.add({
       targets: this.shieldOverlay,
       alpha: 0.8,
@@ -75,16 +75,15 @@ export default class Duck2 extends Duck {
       yoyo: true
     });
     
-    // Sonido de golpe al escudo (opcional)
     // this.scene.sound.play('shield-hit', { volume: 0.3 });
   }
 
-  // Destruir el escudo
+  // destruir el escudo
   destroyShield() {
     this.hasShield = false;
     this.setData('isShielded', false);
     
-    // Efecto de explosión del escudo
+    // efecto de explosion del escudo
     if (this.shieldOverlay) {
       this.scene.tweens.add({
         targets: this.shieldOverlay,
@@ -99,36 +98,35 @@ export default class Duck2 extends Duck {
       });
     }
     
-    // Detener el efecto arcoíris
+    // detener el efecto arcoiris
     if (this.rainbowTween) {
       this.rainbowTween.stop();
       this.rainbowTween = null;
     }
     
-    // Remover el tint
+    // remover el tint
     this.clearTint();
     
-    // Sonido de escudo destruido (opcional)
     // this.scene.sound.play('shield-break', { volume: 0.5 });
   }
 
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
     
-    // Actualizar posición del escudo junto con el pato
+    // actualizar posicion del escudo junto con el pato
     if (this.shieldOverlay && this.shieldOverlay.active) {
       this.shieldOverlay.setPosition(this.x, this.y);
     }
   }
 
-  // Sobrescribir destroy para limpiar recursos
+  // sobrescribir destroy para limpiar recursos
   destroy() {
     // Limpiar el escudo si existe
     if (this.shieldOverlay) {
       this.shieldOverlay.destroy();
     }
     
-    // Detener el tween del arcoíris
+    // detener el tween del arcoiris
     if (this.rainbowTween) {
       this.rainbowTween.stop();
     }

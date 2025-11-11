@@ -2,12 +2,12 @@ export default class ScoreManager {
   constructor(scene) {
     this.scene = scene;
 
-    // Si el registro ya tiene valores, los usamos. Si no, inicializamos.
+    // si el registro ya tiene valores, los usamos si no, inicializamos
     this.score = this.scene.registry.get('score') ?? 0;
     this.hits = this.scene.registry.get('hits') ?? 0;
     this.ammo = this.scene.registry.get('ammo') ?? 5;
 
-    // Aseguramos que los valores existan en el registry
+    // sseguramos que los valores existan en el registry
     if (!this.scene.registry.has('score')) this.scene.registry.set('score', this.score);
     if (!this.scene.registry.has('hits')) this.scene.registry.set('hits', this.hits);
     if (!this.scene.registry.has('ammo')) this.scene.registry.set('ammo', this.ammo);

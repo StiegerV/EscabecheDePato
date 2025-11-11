@@ -10,19 +10,19 @@ export default class LevelTransitionScene extends Phaser.Scene {
   }
 
   create() {
-    // Fondo semitransparente
+    // fondo semitransparente
     this.add.rectangle(0, 0, window.innerWidth, window.innerHeight, 0x000000, 0.8).setOrigin(0);
 
-    // Título
+    // titulo
     this.add.text(window.innerWidth / 2, 150, `Nivel ${this.levelNumber} completado`, {
       fontSize: '48px',
       fill: '#ffcc00'
     }).setOrigin(0.5);
 
-    // Estadísticas
+    // estadisticas
     const { hits = 0, shots = 0, accuracy = 0, timeLeft = 0 } = this.stats;
 
-    // 🔹 Tomar score del registry para mantener acumulativo
+    // tomar score del registry para mantener acumulativo
     const score = this.registry.get('score') ?? 0;
 
     const statsText = `
@@ -39,13 +39,13 @@ Tiempo restante: ${timeLeft} segundos
       align: 'center'
     }).setOrigin(0.5);
 
-    // Texto de continuación
+    // texto de continuacion
     const continueText = this.add.text(window.innerWidth / 2, window.innerHeight - 120, 'Click para continuar', {
       fontSize: '26px',
       fill: '#aaa'
     }).setOrigin(0.5);
 
-    // Animación suave
+    // animacion suave
     this.tweens.add({
       targets: continueText,
       alpha: 0.3,
@@ -54,7 +54,7 @@ Tiempo restante: ${timeLeft} segundos
       duration: 600
     });
 
-    // Esperar clic o tecla para continuar
+    // esperar clic o tecla para continuar
     this.input.once('pointerdown', () => this.scene.start(this.nextScene));
     this.input.keyboard.once('keydown-SPACE', () => this.scene.start(this.nextScene));
   }

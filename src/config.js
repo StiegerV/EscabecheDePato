@@ -8,6 +8,7 @@ import Level2 from './scenes/Level2.js';
 import Level3 from './scenes/Level3.js';
 import GameOverScene from './scenes/GameOverScene.js';
 import PauseScene from './scenes/PauseScene.js';
+import VictoryScene from './scenes/VictoryScene.js';
 
 export default   {
   width: window.innerWidth,
@@ -17,5 +18,5 @@ export default   {
   physics: {
     default: 'arcade'
   },
-  scene: [BootScene,PreloadScene,MenuScene,Level1, Level2, Level3,HUDScene,PauseScene,LevelTransitionScene,GameOverScene]
+  scene: [BootScene,PreloadScene,MenuScene,Level1, Level2, Level3,HUDScene,PauseScene,LevelTransitionScene,GameOverScene,VictoryScene]
 };
