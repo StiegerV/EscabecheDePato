@@ -1,26 +1,33 @@
+//vive dentro del scene manager del game 
+//ademas se comunica con el backend 
 export default class MenuScene extends Phaser.Scene {
   constructor() {
     super('MenuScene');
   }
 
+  //creamos elementos de la interfaz
   create() {
     const { width, height } = this.sys.game.canvas;
     
-    // fondo
+    // fondo responsive basado en el tamaño de la ventana
     this.background = this.add.image(0, 0, 'menuBackground')
       .setOrigin(0)
       .setDisplaySize(window.innerWidth, window.innerHeight);
 
-    // obtener token y usuario
+    // obtener token y usuario desde local storage, lo guardamos en una variable de la escena
     this.token = localStorage.getItem('token');
     this.username = localStorage.getItem('username') || 'Desconocido';
 
     // titulo del juego
+    //this .add utiliza GameObjectFactory
+    //posicion en x mitad de la pantalla e y 120
     this.add.text(width / 2, 120, 'DUCK SEASON', {
+      //estilo del texto
       fontSize: '64px',
       fill: '#000000',
       fontStyle: 'bold',
       fontFamily: 'Arial, sans-serif'
+      //set origin cambia el punto de referencia al centro , principalmente para el anclaje
     }).setOrigin(0.5);
 
     // informacion del jugador
@@ -30,7 +37,7 @@ export default class MenuScene extends Phaser.Scene {
       fontFamily: 'Arial, sans-serif'
     }).setOrigin(0.5);
 
-    // OPCIONES DE MENÚ ACTUALIZADAS - Agregado Ranking Global
+    //arreglo con las opciones del menu definiendo texto y accion centralizando opciones
     const options = [
       { text: '🕹️ Nuevo Juego', action: () => this.startNewGame() },
       { text: '💾 Continuar', action: () => this.showLoadSlots() },
@@ -38,45 +45,56 @@ export default class MenuScene extends Phaser.Scene {
       { text: '📜 Créditos', action: () => this.showCredits() }
     ];
 
+    //construimos de manera dinamica el menu
+    //iteramos sobre options
     options.forEach((opt, i) => {
+      //creamos un texto centrado en el medio y desplazando verticalmente por el indice
       const btn = this.add.text(width / 2, 280 + i * 60, opt.text, {
         fontSize: '32px',
         fill: '#ffff00',
         fontFamily: 'Arial, sans-serif'
       }).setOrigin(0.5)
+      //set interactive hace que el texto responda a eventos del mouse cambiamos el cursor para que sea una mano
         .setInteractive({ useHandCursor: true })
+        //al hacer click llamamos a la accion que tiene asignado
         .on('pointerdown', opt.action)
+        //cambiamos el estilo al pasar por encima y al salir
         .on('pointerover', () => btn.setStyle({ fill: '#ffffff' }))
         .on('pointerout', () => btn.setStyle({ fill: '#ffff00' }));
     });
 
     // remover cualquier listener previo del registry
+    //registry utiliza Phaser.Data.DataManager
     if (this.registry.events) {
+      //sacamos el listener de cambio de data
       this.registry.events.off('changedata');
     }
 
-    // resetear registry al entrar al menu (para nuevo juego limpio)
+    // resetear registry al entrar al menu (para nuevo juego limpio), tambien en el caso de que sea la pirmra vez que entramos
+    //instancia las variables clave valor
     this.registry.set('score', 0);
     this.registry.set('hits', 0);
     this.registry.set('ammo', 5);
     this.registry.set('tiempo', 0);
   }
 
-  // NUEVO: MOSTRAR RANKING GLOBAL
+  // MOSTRAR RANKING GLOBAL
   async showGlobalRanking() {
+    //que el tamaño se base en el canvas y no la ventana
     const { width, height } = this.sys.game.canvas;
     
-    // Fondo del modal
+    // Fondo del modal pos x e y tamaño de 500x500 opacidad del 95%
     const bg = this.add.rectangle(width / 2, height / 2, 500, 500, 0x000000, 0.95)
+    //le da un borde dorado
       .setStrokeStyle(3, 0xffd700);
-    
+    //que el texto este justo encima del rectangulo
     const title = this.add.text(width / 2, height / 2 - 220, "🏆 RANKING GLOBAL", {
       fontSize: "32px",
       fill: "#ffd700",
       fontFamily: 'Arial, sans-serif',
       fontStyle: 'bold'
     }).setOrigin(0.5);
-
+//para poder destruirlos despues
     const buttons = [bg, title];
 
     // Texto de carga
@@ -88,14 +106,18 @@ export default class MenuScene extends Phaser.Scene {
     buttons.push(loadingText);
 
     try {
+      //peticion asincrona al back
       const res = await fetch("http://localhost:3000/highscores");
-      
+      //respuesta de 200
       if (res.ok) {
+        //parseamos a objeto json
         const highscores = await res.json();
+
         loadingText.destroy(); // Remover texto de carga
 
         if (highscores.length === 0) {
           // Si no hay puntuaciones
+          // /n quiebre de linea 
           const noScoresText = this.add.text(width / 2, height / 2, 
             "¡Aún no hay puntuaciones!\n\nCompleta el Level 3 para aparecer aquí.", {
             fontSize: "22px",
@@ -127,11 +149,13 @@ export default class MenuScene extends Phaser.Scene {
               fontFamily: 'Arial, sans-serif'
             }).setOrigin(0, 0.5);
 
+            //separamos el string en el caso de que sea muy largo
             const username = this.add.text(width / 2 - 180, yPos, 
               score.username.length > 12 ? score.username.substring(0, 12) + "..." : score.username, {
               fontSize: "18px",
               fill: "#4ecdc4",
               fontFamily: 'Arial, sans-serif'
+              //punto de anclje basado en x e y
             }).setOrigin(0, 0.5);
 
             const points = this.add.text(width / 2 + 50, yPos, 
@@ -158,7 +182,7 @@ export default class MenuScene extends Phaser.Scene {
             buttons.push(position, username, points, time);
           });
 
-          // Información adicional
+          // Informacion adicional
           const infoText = this.add.text(width / 2, height / 2 + 170, 
             "💡 Completa el Level 3 para subir tu puntuación", {
             fontSize: "16px",
@@ -189,6 +213,7 @@ export default class MenuScene extends Phaser.Scene {
     }).setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on('pointerdown', () => {
+        //limpiar todos los elementos del modal
         buttons.forEach(el => el.destroy());
         closeBtn.destroy();
       })
@@ -223,6 +248,7 @@ export default class MenuScene extends Phaser.Scene {
 
   // mostrar menu de carga 
   async showLoadSlots() {
+    //verifiacmos que tenga token
     if (!this.token) {
       this.showToast("⚠️ No estás logueado", "#f00");
       return;

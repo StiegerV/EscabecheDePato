@@ -1,6 +1,7 @@
 import Duck from '../utils/Duck.js';
 export default class Duck2 extends Duck {
   constructor(scene, x, y, baseSpeed) {
+    //llamamos al constructor padre
     super(scene, x, y, baseSpeed);
     
     // propiedades del escudo
@@ -8,12 +9,15 @@ export default class Duck2 extends Duck {
     this.hitsTaken = 0;
     this.hasShield = true;
     
-    // crear overlay de escudo 
+    // crear overlay de escudo circulo semi transparente 30opacidad
     this.shieldOverlay = scene.add.circle(this.x, this.y, this.width * 0.7, 0xffffff, 0.3)
       .setStrokeStyle(3, 0xffffff);
+      //para que se dibuje debajo del pato
     this.shieldOverlay.setDepth(this.depth - 1);
     
     // efecto de  arcoiris
+    //En cada actualización, ese valor se pasa a getRainbowColor() 
+    // que genera un color RGB oscilante
     this.rainbowTween = scene.tweens.addCounter({
       from: 0,
       to: 1,
@@ -110,6 +114,7 @@ export default class Duck2 extends Duck {
     // this.scene.sound.play('shield-break', { volume: 0.5 });
   }
 
+  //mantiene el overlay del escudo sincronizado con el movimiento del pato
   preUpdate(time, delta) {
     super.preUpdate(time, delta);
     

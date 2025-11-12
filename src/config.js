@@ -11,12 +11,17 @@ import PauseScene from './scenes/PauseScene.js';
 import VictoryScene from './scenes/VictoryScene.js';
 
 export default   {
+  //dimensiones del canvas
   width: window.innerWidth,
   height: window.innerHeight,
+  //elemento html en el que se inyecta el canvas
   parent: 'game-container',
+  //color del canvas antes de renderizar asi no parpadea
   backgroundColor: '#000000',
+  //asigna el sistema de fisicas mas simple , basado en bounding boxes
   physics: {
     default: 'arcade'
   },
+  //lista de escenas accesibles en el juego , cada una tiene su propio ciclo de vida
   scene: [BootScene,PreloadScene,MenuScene,Level1, Level2, Level3,HUDScene,PauseScene,LevelTransitionScene,GameOverScene,VictoryScene]
 };

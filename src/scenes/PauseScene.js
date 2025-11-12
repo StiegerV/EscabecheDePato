@@ -50,7 +50,7 @@ export default class PauseScene extends Phaser.Scene {
       }
     ).setOrigin(0.5);
 
-    // OPCIONES ACTUALIZADAS - Agregado Ranking Global
+    // options
     const options = [
       { text: 'Reanudar', action: () => this.resumeGame() },
       { text: 'Guardar Progreso', action: () => this.showSaveSlots() },
