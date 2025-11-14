@@ -75,7 +75,7 @@ export default class LevelBase extends Phaser.Scene {
           // 25% - Pato con escudo
           duck = new Duck2(this, Phaser.Math.Between(100, window.innerWidth - 100), 550, config.duckSpeed);
         } else {
-          // 15% - Pato evasivo (gris)
+          // 15% - Pato erratico
           duck = new Duck3(this, Phaser.Math.Between(100, window.innerWidth - 100), 550, config.duckSpeed * 1.1);
         }
 
@@ -235,7 +235,7 @@ export default class LevelBase extends Phaser.Scene {
           shots: shots,
           accuracy: accuracy,
           timeLeft: this.levelTime,
-          score: this.registry.get('score') // Pasar score tambien por si acaso
+          score: this.registry.get('score') // Pasar score tambien por las dudas
         },
       });
     }

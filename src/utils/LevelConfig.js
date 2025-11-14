@@ -1,5 +1,6 @@
 const LevelConfig = [
   {
+    // imagen de fondo, velocidad de los patos, musica de fondo, tiempo entre spawns, puntaje objetivo, duracion del nivel
     background: 'background1',
     duckSpeed: 200,
     music: 'level1music',
@@ -13,7 +14,7 @@ const LevelConfig = [
     music: 'level2music',
     spawnDelay: 900,
     targetScore: 3000,
-    duration: 30000 //en milisegundos
+    duration: 3000 //en milisegundos
   },
   {
     background: 'background3',

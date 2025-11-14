@@ -17,7 +17,9 @@ export default class Player {
     this.scene.input.keyboard.on('keydown-R', () => this.handleBolt());
   }
 
+  //pasamos el mouse para chequear si le pegamos a algun pato
   shoot(pointer) {
+    //esta cargando balas o no acciono la palanca del rifle
     if (this.isReloading || !this.manualReloadReady) return;
 
     if (this.ammo > 0) {
@@ -29,6 +31,7 @@ export default class Player {
       this.scene.registry.set('shots', this.shots); 
       
       this.scene.sound.play('shot', { volume: 0.09 });
+      //agitamos la camara para dar impacto
       this.scene.cameras.main.shake(50, 0.002);
       this.manualReloadReady = false;
 
@@ -55,6 +58,7 @@ export default class Player {
     }
   }
 
+  // manejar la recarga manual al accionar la palanca
   handleBolt() {
     if (!this.manualReloadReady && !this.isReloading) {
       this.scene.sound.play('bolt', { volume: 0.1 });
@@ -64,6 +68,7 @@ export default class Player {
     }
   }
 
+  // iniciar recarga
   startReload() {
     this.isReloading = true;
     this.scene.sound.play('reload', { volume: 0.3 });
